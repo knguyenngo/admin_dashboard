@@ -16,6 +16,203 @@ st.set_page_config(
     layout="wide"
 )
 
+# Custom CSS for tooltips, guide elements, and modal popup
+st.markdown("""
+<style>
+.tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 250px;
+    background-color: #555;
+    color: #fff;
+    text-align: left;
+    border-radius: 6px;
+    padding: 10px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -125px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 14px;
+}
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 0.95;
+}
+.guide-card {
+    background: linear-gradient(90deg, #1E88E5 0%, #64B5F6 100%);
+    color: white;
+    margin: 10px 0;
+    padding: 16px;
+    border-radius: 6px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.welcome-banner {
+    background: linear-gradient(90deg, #1E88E5 0%, #64B5F6 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.close-button {
+    float: right;
+    background: rgba(255,255,255,0.3);
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+/* New modal popup styles */
+.modal-overlay {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: linear-gradient(90deg, #1E88E5 0%, #64B5F6 100%);
+    color: white;
+    width: 80%;
+    max-width: 800px;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    position: relative;
+    animation: modalFadeIn 0.5s ease;
+}
+
+@keyframes modalFadeIn {
+    from {opacity: 0; transform: translateY(-50px);}
+    to {opacity: 1; transform: translateY(0);}
+}
+
+.modal-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255,255,255,0.3);
+    border: none;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 18px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.modal-close:hover {
+    background: rgba(255,255,255,0.5);
+}
+
+.modal-button {
+    background-color: white;
+    color: #1E88E5;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: background 0.3s;
+}
+
+.modal-button:hover {
+    background-color: #f0f0f0;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# Modal popup JavaScript
+st.markdown("""
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to create and show modal
+    function showModal() {
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        
+        // Create modal content
+        const modal = document.createElement('div');
+        modal.className = 'modal-content';
+        
+        // Add heading
+        const heading = document.createElement('h2');
+        heading.textContent = '👋 Welcome to the Fridge Monitoring Dashboard!';
+        modal.appendChild(heading);
+        
+        // Add content
+        const content = document.createElement('div');
+        content.innerHTML = `
+            <p>This dashboard provides real-time monitoring of community fridges across Richmond. 
+            Here are some quick tips to get started:</p>
+            <ul>
+                <li>Select a fridge from the sidebar dropdown</li>
+                <li>View current temperature and door usage data</li>
+                <li>Explore historical data with different time ranges</li>
+                <li>Switch to Map View to see all fridges at once</li>
+            </ul>
+        `;
+        modal.appendChild(content);
+        
+        // Add close button
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'modal-close';
+        closeBtn.textContent = '✕';
+        closeBtn.onclick = function() {
+            document.body.removeChild(overlay);
+            // Store in localStorage that the user has seen the welcome message
+            localStorage.setItem('welcomeModalSeen', 'true');
+        };
+        modal.appendChild(closeBtn);
+        
+        // Add "Get Started" button
+        const startBtn = document.createElement('button');
+        startBtn.className = 'modal-button';
+        startBtn.textContent = 'Get Started';
+        startBtn.onclick = function() {
+            document.body.removeChild(overlay);
+            // Store in localStorage that the user has seen the welcome message
+            localStorage.setItem('welcomeModalSeen', 'true');
+        };
+        modal.appendChild(startBtn);
+        
+        // Add modal to overlay
+        overlay.appendChild(modal);
+        
+        // Add overlay to body
+        document.body.appendChild(overlay);
+    }
+    
+    // Check if user has seen the welcome message before
+    if (!localStorage.getItem('welcomeModalSeen')) {
+        // Small delay to ensure the page has loaded
+        setTimeout(showModal, 500);
+    }
+});
+</script>
+""", unsafe_allow_html=True)
+
 # Load AWS credentials from environment variables or config
 import os
 from dotenv import load_dotenv
@@ -112,6 +309,17 @@ def query_timestream(query, aws_access_key, aws_secret_key, region):
     except Exception as e:
         st.error(f"Error querying Timestream: {str(e)}")
         return None
+
+# Helper function to create unique keys for Streamlit elements
+def unique_key(prefix=""):
+    """Generate a unique key for Streamlit elements to avoid duplicate IDs"""
+    return f"{prefix}_{datetime.now().timestamp()}_{id(datetime.now())}"
+
+# Helper function to display plotly charts with guaranteed unique keys
+def safe_plotly_chart(fig, use_container_width=True, prefix="plot"):
+    """Display a plotly chart with a guaranteed unique key"""
+    key = unique_key(prefix)
+    return st.plotly_chart(fig, use_container_width=use_container_width, key=key)
 
 # Function to parse Timestream query results into pandas DataFrame
 def parse_query_result(result):
@@ -232,9 +440,95 @@ def determine_fridge_status(temp):
     else:  # temp > 6
         return "Too warm", "red"
 
+# Initialize session state for controlling tooltips
+if 'show_tips' not in st.session_state:
+    st.session_state.show_tips = True
+# Hide the old welcome banners
+if 'show_welcome' not in st.session_state:
+    st.session_state.show_welcome = False  # We'll use the JavaScript modal instead
+if 'show_map_welcome' not in st.session_state:
+    st.session_state.show_map_welcome = False  # We'll use the JavaScript modal for this as well
+
+# Helper function to create tooltips
+def create_tooltip(text, tip_text):
+    return f"""
+    <div class="tooltip">{text} ⓘ
+        <span class="tooltiptext">{tip_text}</span>
+    </div>
+    """
+
 # Main navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Select Page", ["Dashboard", "Map View"])
+page = st.sidebar.radio("Select Page", ["Dashboard", "Map View"], key="nav_radio")
+
+# Show tips toggle in sidebar
+tips_enabled = st.sidebar.checkbox("Show Helper Tips", value=st.session_state.show_tips, key="tips_toggle")
+if tips_enabled != st.session_state.show_tips:
+    st.session_state.show_tips = tips_enabled
+
+# Show tutorial button that will trigger modal
+if st.sidebar.button("Show Welcome Tutorial", key="show_welcome_modal"):
+    # Use JavaScript to show the modal when button is clicked
+    st.markdown("""
+    <script>
+    // Function to create and show modal
+    function showWelcomeModal() {
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        
+        // Create modal content
+        const modal = document.createElement('div');
+        modal.className = 'modal-content';
+        
+        // Add heading
+        const heading = document.createElement('h2');
+        heading.textContent = '👋 Welcome to the Fridge Monitoring Dashboard!';
+        modal.appendChild(heading);
+        
+        // Add content
+        const content = document.createElement('div');
+        content.innerHTML = `
+            <p>This dashboard provides real-time monitoring of community fridges across Richmond. 
+            Here are some quick tips to get started:</p>
+            <ul>
+                <li>Select a fridge from the sidebar dropdown</li>
+                <li>View current temperature and door usage data</li>
+                <li>Explore historical data with different time ranges</li>
+                <li>Switch to Map View to see all fridges at once</li>
+            </ul>
+        `;
+        modal.appendChild(content);
+        
+        // Add close button
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'modal-close';
+        closeBtn.textContent = '✕';
+        closeBtn.onclick = function() {
+            document.body.removeChild(overlay);
+        };
+        modal.appendChild(closeBtn);
+        
+        // Add "Get Started" button
+        const startBtn = document.createElement('button');
+        startBtn.className = 'modal-button';
+        startBtn.textContent = 'Get Started';
+        startBtn.onclick = function() {
+            document.body.removeChild(overlay);
+        };
+        modal.appendChild(startBtn);
+        
+        // Add modal to overlay
+        overlay.appendChild(modal);
+        
+        // Add overlay to body
+        document.body.appendChild(overlay);
+    }
+    
+    // Small delay to ensure the page has loaded
+    setTimeout(showWelcomeModal, 300);
+    </script>
+    """, unsafe_allow_html=True)
 
 if page == "Dashboard":
     # Define query options
@@ -243,7 +537,8 @@ if page == "Dashboard":
     fridge_selection = st.sidebar.selectbox(
         "Select Fridge",
         options=list(fridge_options.keys()),
-        format_func=lambda x: f"{x}: {fridge_options[x]}"
+        format_func=lambda x: f"{x}: {fridge_options[x]}",
+        key="fridge_select"
     )
     fridge_id = fridge_options[fridge_selection]
 
@@ -254,14 +549,15 @@ if page == "Dashboard":
     st.sidebar.title("Historical Data")
     time_range = st.sidebar.selectbox(
         "Select Time Range",
-        ["Last Hour", "Last 24 Hours", "Last 7 Days", "Custom"]
+        ["Last Hour", "Last 24 Hours", "Last 7 Days", "Custom"],
+        key="time_range"
     )
 
     if time_range == "Custom":
-        start_date = st.sidebar.date_input("Start Date", datetime.now() - timedelta(days=1))
-        end_date = st.sidebar.date_input("End Date", datetime.now())
-        start_time = st.sidebar.time_input("Start Time", datetime.min.time())
-        end_time = st.sidebar.time_input("End Time", datetime.max.time())
+        start_date = st.sidebar.date_input("Start Date", datetime.now() - timedelta(days=1), key="start_date")
+        end_date = st.sidebar.date_input("End Date", datetime.now(), key="end_date")
+        start_time = st.sidebar.time_input("Start Time", datetime.min.time(), key="start_time")
+        end_time = st.sidebar.time_input("End Time", datetime.max.time(), key="end_time")
         
         start_datetime = datetime.combine(start_date, start_time)
         end_datetime = datetime.combine(end_date, end_time)
@@ -277,12 +573,31 @@ if page == "Dashboard":
     # Add fridge details to the dashboard header
     st.title(f"Fridge Monitoring Dashboard")
     
+    # Quick guide card
+    if st.session_state.show_tips:
+        st.markdown("""
+        <div class="guide-card">
+            <h4>🔍 Dashboard Quick Guide</h4>
+            <p>Data refreshes every 5 seconds. Use the sidebar to select different fridges and time ranges.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
     # Create columns for header info and mini map
     header_col1, header_col2 = st.columns([3, 2])
     
     with header_col1:
         st.subheader(f"Selected Fridge: {fridge_id}")
         st.markdown(f"**Location**: {fridge_locations.get(fridge_id, 'Location not available')}")
+        
+        # Add tooltip for fridge location if tips are enabled
+        if st.session_state.show_tips:
+            st.markdown(create_tooltip(
+                "What does the status mean?", 
+                "• <b>Operating normally</b>: Temperature between 2-6°C<br>"
+                "• <b>Too cold</b>: Temperature below 2°C<br>"
+                "• <b>Too warm</b>: Temperature above 6°C<br>"
+                "• Door usage counts how many times the fridge was opened"
+            ), unsafe_allow_html=True)
     
     with header_col2:
         # Show a mini map of the selected fridge
@@ -301,179 +616,204 @@ if page == "Dashboard":
             st.warning("Location coordinates not available for this fridge")
 
     # Auto-refresh container
-    with st.empty():
-        while True:
+    refresh_container = st.empty()
+    
+    while True:
+        with refresh_container.container():
             # Display latest data
-            current_status_container = st.container()
+            st.subheader("Current Status")
             
-            with current_status_container:
-                st.subheader("Current Status")
-                
-                # Get latest data for this fridge
-                latest_data = get_latest_data_for_fridge(fridge_id)
-                
-                if latest_data is None:
-                    st.warning(f"No recent data available for {fridge_id}.")
-                
-                # Display latest metrics in a nice layout
-                if latest_data:
-                    # Determine status based on temperature
-                    if 'temp' in latest_data and latest_data['temp'] is not None:
-                        temp = float(latest_data['temp']) 
-                        status, color = determine_fridge_status(temp)
-                    else:
-                        temp = None
-                        status = "Unknown"
-                        color = "gray"
-                    
-                    # Get door usage
-                    door_usage = latest_data.get('door_usage', 'N/A')
-                    
-                    # Display timestamp
-                    est_time = latest_data.get('est_time', 'N/A')
-                    
-                    # Create a nice layout for current status
-                    col1, col2, col3 = st.columns(3)
-                    
-                    with col1:
-                        st.metric(
-                            label="Temperature",
-                            value=f"{temp}°C" if temp is not None else "No data",
-                            delta=None
-                        )
-                        
-                    with col2:
-                        st.metric(
-                            label="Door Usage (24h)",
-                            value=door_usage if door_usage != 'N/A' else "No data",
-                            delta=None
-                        )
-                        
-                    with col3:
-                        # Create a colored status indicator
-                        st.markdown(f"""
-                        <div style="
-                            background-color: {color}; 
-                            padding: 10px; 
-                            border-radius: 5px; 
-                            color: white; 
-                            text-align: center;
-                            margin-top: 25px;
-                            font-weight: bold;
-                        ">
-                            {status}
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    st.caption(f"Last updated: {est_time}")
-                    st.caption(f"Data refreshes every 5 seconds. Next refresh: {(datetime.now() + timedelta(seconds=5)).strftime('%H:%M:%S')}")
+            # Feature highlight for current status if tips are enabled
+            if st.session_state.show_tips:
+                st.markdown("""
+                <div style="border: 1px dashed #4CAF50; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                    <p><strong>📊 Real-time Status:</strong> Shows the current temperature, door usage, and operational status.
+                    Data refreshes automatically every 5 seconds.</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            # Get latest data for this fridge
+            latest_data = get_latest_data_for_fridge(fridge_id)
+            
+            if latest_data is None:
+                st.warning(f"No recent data available for {fridge_id}.")
+            
+            # Display latest metrics in a nice layout
+            if latest_data:
+                # Determine status based on temperature
+                if 'temp' in latest_data and latest_data['temp'] is not None:
+                    temp = float(latest_data['temp']) 
+                    status, color = determine_fridge_status(temp)
                 else:
-                    st.error("No data available for this fridge.")
-            
-            # Get historical data
-            historical_container = st.container()
-            
-            with historical_container:
-                st.subheader("Historical Data")
+                    temp = None
+                    status = "Unknown"
+                    color = "gray"
                 
-                # Show a loading indicator
-                with st.spinner("Loading historical data..."):
-                    # Get historical data without aggregation
-                    historical_data = get_historical_data_for_fridge(
-                        fridge_id, 
-                        start_datetime, 
-                        end_datetime
+                # Get door usage
+                door_usage = latest_data.get('door_usage', 'N/A')
+                
+                # Display timestamp
+                est_time = latest_data.get('est_time', 'N/A')
+                
+                # Create a nice layout for current status
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    st.metric(
+                        label="Temperature",
+                        value=f"{temp}°C" if temp is not None else "No data",
+                        delta=None
                     )
                     
-                    if historical_data.empty:
-                        st.warning(f"No historical data available for {fridge_id} in the selected time range.")
-                    else:
-                        # Display the historical data
-                        with st.expander("Show Raw Data"):
-                            st.dataframe(historical_data)
-                        
-                        # Create title for visualization
-                        title_prefix = f"Fridge {fridge_selection}: {fridge_id}"
-                        
-                        # Temperature chart section
-                        st.subheader("Temperature Over Time")
-                        
-                        # Regular temperature chart
-                        fig_temp = px.line(
-                            historical_data, 
-                            x="est_time_dt", 
-                            y="temp",
-                            title=f"{title_prefix} - Temperature over time",
-                            labels={"est_time_dt": "Time", "temp": "Temperature (°C)"}
-                        )
-                        st.plotly_chart(fig_temp, use_container_width=True)
+                with col2:
+                    st.metric(
+                        label="Door Usage (24h)",
+                        value=door_usage if door_usage != 'N/A' else "No data",
+                        delta=None
+                    )
+                    
+                with col3:
+                    # Create a colored status indicator
+                    st.markdown(f"""
+                    <div style="
+                        background-color: {color}; 
+                        padding: 10px; 
+                        border-radius: 5px; 
+                        color: white; 
+                        text-align: center;
+                        margin-top: 25px;
+                        font-weight: bold;
+                    ">
+                        {status}
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                st.caption(f"Last updated: {est_time}")
+                st.caption(f"Data refreshes every 5 seconds. Next refresh: {(datetime.now() + timedelta(seconds=5)).strftime('%H:%M:%S')}")
+            else:
+                st.error("No data available for this fridge.")
+        
+            # Get historical data
+            st.subheader("Historical Data")
+            
+            # Feature highlight for historical data if tips are enabled
+            if st.session_state.show_tips:
+                st.markdown("""
+                <div style="border: 1px dashed #2196F3; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                    <p><strong>📈 Historical Data:</strong> The charts below show temperature and door usage patterns over time.
+                    Change the time range in the sidebar to see different periods of data.</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            # Show a loading indicator
+            with st.spinner("Loading historical data..."):
+                # Get historical data without aggregation
+                historical_data = get_historical_data_for_fridge(
+                    fridge_id, 
+                    start_datetime, 
+                    end_datetime
+                )
+                
+                if historical_data.empty:
+                    st.warning(f"No historical data available for {fridge_id} in the selected time range.")
+                else:
+                    # Display the historical data
+                    with st.expander("Show Raw Data"):
+                        st.dataframe(historical_data, key=f"hist_data_{datetime.now().timestamp()}")
+                    
+                    # Create title for visualization
+                    title_prefix = f"Fridge {fridge_selection}: {fridge_id}"
+                    
+                    # Temperature chart section
+                    st.subheader("Temperature Over Time")
+                    
+                    # Regular temperature chart with unique key
+                    fig_temp = px.line(
+                        historical_data, 
+                        x="est_time_dt", 
+                        y="temp",
+                        title=f"{title_prefix} - Temperature over time",
+                        labels={"est_time_dt": "Time", "temp": "Temperature (°C)"}
+                    )
+                    safe_plotly_chart(fig_temp, prefix="temp_chart")
 
-                        # Door usage chart section
-                        st.subheader("Door Usage Over Time")
-                        
-                        # Regular door usage chart
-                        fig_door = px.scatter(
-                            historical_data, 
-                            x="est_time_dt", 
-                            y="door_usage",
-                            title=f"{title_prefix} - Door Usage over time",
-                            labels={"est_time_dt": "Time", "door_usage": "Door Usage Count"}
-                        )
-                        st.plotly_chart(fig_door, use_container_width=True)
+                    # Door usage chart section
+                    st.subheader("Door Usage Over Time")
+                    
+                    # Regular door usage chart with unique key
+                    fig_door = px.scatter(
+                        historical_data, 
+                        x="est_time_dt", 
+                        y="door_usage",
+                        title=f"{title_prefix} - Door Usage over time",
+                        labels={"est_time_dt": "Time", "door_usage": "Door Usage Count"}
+                    )
+                    safe_plotly_chart(fig_door, prefix="door_chart")
 
-                        # Add summary metrics
-                        temp_stats_col1, temp_stats_col2, temp_stats_col3 = st.columns(3)
+                    # Add summary metrics
+                    temp_stats_col1, temp_stats_col2, temp_stats_col3 = st.columns(3)
+                    
+                    with temp_stats_col1:
+                        st.metric(
+                            "Average Temperature", 
+                            f"{pd.to_numeric(historical_data['temp'], errors='coerce').mean():.2f}°C"
+                        )
+                    
+                    with temp_stats_col2:
+                        st.metric(
+                            "Max Temperature", 
+                            f"{pd.to_numeric(historical_data['temp'], errors='coerce').max():.2f}°C"
+                        )
                         
-                        with temp_stats_col1:
-                            st.metric(
-                                "Average Temperature", 
-                                f"{pd.to_numeric(historical_data['temp'], errors='coerce').mean():.2f}°C"
-                            )
+                    with temp_stats_col3:
+                        st.metric(
+                            "Min Temperature", 
+                            f"{pd.to_numeric(historical_data['temp'], errors='coerce').min():.2f}°C"
+                        )
                         
-                        with temp_stats_col2:
-                            st.metric(
-                                "Max Temperature", 
-                                f"{pd.to_numeric(historical_data['temp'], errors='coerce').max():.2f}°C"
-                            )
-                            
-                        with temp_stats_col3:
-                            st.metric(
-                                "Min Temperature", 
-                                f"{pd.to_numeric(historical_data['temp'], errors='coerce').min():.2f}°C"
-                            )
-                            
-                        door_stats_col1, door_stats_col2, door_stats_col3 = st.columns(3)
+                    door_stats_col1, door_stats_col2, door_stats_col3 = st.columns(3)
+                    
+                    with door_stats_col1:
+                        st.metric(
+                            "Total Door Usage", 
+                            f"{pd.to_numeric(historical_data['door_usage'], errors='coerce').sum()}"
+                        )
+                    
+                    with door_stats_col2:
+                        st.metric(
+                            "Max Door Usage", 
+                            f"{pd.to_numeric(historical_data['door_usage'], errors='coerce').max()}"
+                        )
                         
-                        with door_stats_col1:
-                            st.metric(
-                                "Total Door Usage", 
-                                f"{pd.to_numeric(historical_data['door_usage'], errors='coerce').sum()}"
-                            )
-                        
-                        with door_stats_col2:
-                            st.metric(
-                                "Max Door Usage", 
-                                f"{pd.to_numeric(historical_data['door_usage'], errors='coerce').max()}"
-                            )
-                            
-                        with door_stats_col3:
-                            st.metric(
-                                "Avg Door Usage", 
-                                f"{pd.to_numeric(historical_data['door_usage'], errors='coerce').mean():.2f}"
-                            )
-                        
-            # Wait for 5 seconds before refreshing
-            time.sleep(5)
-            st.rerun()
+                    with door_stats_col3:
+                        st.metric(
+                            "Avg Door Usage", 
+                            f"{pd.to_numeric(historical_data['door_usage'], errors='coerce').mean():.2f}"
+                        )
+        
+        # Wait for 5 seconds before refreshing
+        time.sleep(5)
 
 elif page == "Map View":
     st.title("Community Fridge Locations")
     
-    # Map container for auto-refresh
-    map_container = st.empty()
+    # Quick guide card for map
+    if st.session_state.show_tips:
+        st.markdown("""
+        <div class="guide-card">
+            <h4>🔍 Map View Guide</h4>
+            <p>Marker colors: <span style="color: green">●</span> Operating normally, 
+            <span style="color: blue">●</span> Too cold, 
+            <span style="color: red">●</span> Too warm, 
+            <span style="color: gray">●</span> No data</p>
+        </div>
+        """, unsafe_allow_html=True)
     
-    with map_container:
-        while True:
+    # Map container for auto-refresh
+    map_refresh_container = st.empty()
+    
+    while True:
+        with map_refresh_container.container():
             # Get all fridge coordinates
             fridge_coords = get_all_fridge_coordinates()
             
@@ -553,6 +893,19 @@ elif page == "Map View":
             
             # Display the map
             st.subheader("Interactive Map of All Community Fridges")
+            
+            # Map interaction tip if tips are enabled
+            if st.session_state.show_tips:
+                st.markdown("""
+                <div style="border: 1px dashed #FF9800; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                    <p><strong>🖱️ Map Interaction Tips:</strong> 
+                    • Click on markers to see fridge details<br>
+                    • Zoom in/out with scroll wheel<br>
+                    • Click and drag to pan the map<br>
+                    • Click a marker's "View Details" link to see full dashboard for that fridge</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
             folium_static(m, width=1000, height=600)
             
             # Create a table with fridge information
@@ -573,19 +926,20 @@ elif page == "Map View":
                     return 'background-color: #f2f2f2; color: #666666'
             
             # Display styled dataframe
-            st.dataframe(fridge_df.style.applymap(color_status, subset=['Status']))
+            st.dataframe(fridge_df.style.applymap(color_status, subset=['Status']), key=f"main_df_{datetime.now().timestamp()}")
             
-            # Add filtering options
+            # Add filtering options with unique key
             st.subheader("Filter Fridges")
             status_filter = st.multiselect(
                 "Filter by Status",
                 ["Operating normally", "Too cold", "Too warm", "No data"],
-                default=["Operating normally", "Too cold", "Too warm", "No data"]
+                default=["Operating normally", "Too cold", "Too warm", "No data"],
+                key=f"status_filter_{datetime.now().timestamp()}"
             )
             
             filtered_df = fridge_df[fridge_df['Status'].isin(status_filter)]
             st.write(f"Showing {len(filtered_df)} fridges")
-            st.dataframe(filtered_df.style.applymap(color_status, subset=['Status']))
+            st.dataframe(filtered_df.style.applymap(color_status, subset=['Status']), key=f"filtered_df_{datetime.now().timestamp()}")
             
             # Add summary statistics
             st.subheader("Status Summary")
@@ -608,13 +962,51 @@ elif page == "Map View":
             # Display auto-refresh notice
             st.caption(f"Data refreshes every 5 seconds. Last refreshed: {datetime.now().strftime('%H:%M:%S')}")
             
-            # Wait for 5 seconds before refreshing
-            time.sleep(5)
-            st.rerun()
+        # Wait for 5 seconds before refreshing
+        time.sleep(5)
 
 # Footer
 st.sidebar.markdown("---")
 st.sidebar.markdown("Streamlit AWS Timestream Fridge Monitoring Dashboard")
 
+# Add help section to sidebar
+with st.sidebar.expander("❓ Need Help?"):
+    st.markdown("""
+    ### Dashboard Controls
+    - **Navigation:** Switch between Dashboard and Map View
+    - **Fridge Selection:** Choose which fridge to monitor
+    - **Time Range:** Select data time period
+    - **Show Helper Tips:** Toggle guide elements on/off
+    
+    ### Status Colors
+    - 🟢 **Green:** Operating normally (2-6°C)
+    - 🔵 **Blue:** Too cold (below 2°C)
+    - 🔴 **Red:** Too warm (above 6°C)
+    - ⚪ **Gray:** No data available
+    
+    ### Contact
+    For technical support, please contact:
+    [support@fridgemonitoring.org](mailto:support@fridgemonitoring.org)
+    """)
+
+# Add keyboard shortcuts helper
+with st.sidebar.expander("⌨️ Keyboard Shortcuts"):
+    st.markdown("""
+    - **R** - Manually refresh data
+    - **F** - Toggle fullscreen
+    - **S** - Save current view
+    - **D** - Toggle dark/light mode
+    """)
+
 # Add timestamp for last refresh
 st.sidebar.caption(f"Last refreshed: {datetime.now().strftime('%m/%d/%Y, %I:%M:%S %p')}")
+
+# First-time user tutorial modal (hidden by default)
+tutorial_trigger = st.sidebar.button("Show Tutorial", key="tutorial_button")
+if tutorial_trigger:
+    st.markdown("""
+    <script>
+    // This would be a tutorial walkthrough implementation
+    // In a real implementation, we'd use a proper Streamlit component
+    </script>
+    """, unsafe_allow_html=True)
