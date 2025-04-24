@@ -1,19 +1,36 @@
 import streamlit as st
+from components.login    import show_aws_login
 from components.dashboard import show_dashboard
 from components.map_view import show_map_view
-from styles.custom_css import apply_custom_css
+from styles.custom_css   import apply_custom_css
 import config
 
 def main():
-    # Page configuration
-    st.set_page_config(
-        page_title=config.PAGE_TITLE,
-        page_icon=config.PAGE_ICON,
-        layout=config.LAYOUT
-    )
-    
-    # Apply custom CSS
+    st.set_page_config(page_title=config.PAGE_TITLE,
+                       page_icon=config.PAGE_ICON,
+                       layout=config.LAYOUT)
+
     apply_custom_css()
+
+    # 1) If we don't yet have AWS creds in session, show the login form
+    if 'aws_access_key' not in st.session_state:
+        show_aws_login()
+
+    # 2) At this point we know we have credentials
+    AWS_ACCESS_KEY = st.session_state.aws_access_key
+    AWS_SECRET_KEY = st.session_state.aws_secret_key
+    AWS_REGION     = st.session_state.aws_region
+
+    # Now you can build your boto3 client for Timestream, e.g.:
+    import boto3
+    session = boto3.Session(
+        aws_access_key_id=AWS_ACCESS_KEY,
+        aws_secret_access_key=AWS_SECRET_KEY,
+        region_name=AWS_REGION
+    )
+    # pass this session or client into your utilities
+    from utils.aws import set_aws_session
+    set_aws_session(session)
     
     # Initialize session state
     if 'show_tips' not in st.session_state:
@@ -28,15 +45,10 @@ def main():
     page = st.sidebar.radio("Select Page", ["Dashboard", "Map View"], key="nav_radio")
     
     # Show tips toggle in sidebar
-    tips_enabled = st.sidebar.checkbox("Show Helper Tips", value=st.session_state.show_tips, key="tips_toggle")
-    if tips_enabled != st.session_state.show_tips:
-        st.session_state.show_tips = tips_enabled
-    
+    #
     # Show tutorial button
-    if st.sidebar.button("Show Welcome Tutorial", key="show_welcome_modal"):
-        from components.modals import show_welcome_modal_js
-        show_welcome_modal_js()
-    
+    #
+
     # Display the selected page
     if page == "Dashboard":
         show_dashboard()
@@ -58,12 +70,6 @@ def main():
     # Add timestamp for last refresh
     from datetime import datetime
     st.sidebar.caption(f"Last refreshed: {datetime.now().strftime('%m/%d/%Y, %I:%M:%S %p')}")
-    
-    # First-time user tutorial modal button
-    tutorial_trigger = st.sidebar.button("Show Tutorial", key="tutorial_button")
-    if tutorial_trigger:
-        from components.modals import show_tutorial_js
-        show_tutorial_js()
 
 if __name__ == "__main__":
     main()

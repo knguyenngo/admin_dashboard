@@ -168,7 +168,6 @@ def get_status_indicator_style(status, color):
     </div>
     """
 
-# Function to apply color status to dataframe
 def color_status_style():
     def color_status(val):
         if "normally" in val:
@@ -179,7 +178,6 @@ def color_status_style():
             return 'background-color: #ffc7ce; color: #9c0006'
         else:  # No data
             return 'background-color: #f2f2f2; color: #666666'
-    
     return color_status
 
 # Color map for plotly charts

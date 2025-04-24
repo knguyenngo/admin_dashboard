@@ -15,3 +15,7 @@ def get_all_fridge_coordinates():
     """Get all fridge coordinates"""
     from config import FRIDGE_COORDINATES
     return FRIDGE_COORDINATES
+
+def get_fridge_locations():
+    from config import FRIDGE_LOCATIONS
+    return FRIDGE_LOCATIONS

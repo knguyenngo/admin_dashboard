@@ -94,7 +94,6 @@ KEYBOARD_SHORTCUTS = """
 - **R** - Manually refresh data
 - **F** - Toggle fullscreen
 - **S** - Save current view
-- **D** - Toggle dark/light mode
 """
 
 # Data refresh rate in seconds
