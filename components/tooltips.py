@@ -47,7 +47,7 @@ def add_help_section():
         - **Navigation:** Switch between Dashboard and Map View
         - **Fridge Selection:** Choose which fridge to monitor
         - **Time Range:** Select data time period
-        - **Show Helper Tips:** Toggle guide elements on/off
+        - **Auto-Refresh:** Click Once to Start, Triple Click to Stop
         
         ### Status Colors
         - 🟢 **Green:** Operating normally (2-6°C)

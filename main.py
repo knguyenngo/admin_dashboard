@@ -64,8 +64,8 @@ def main():
         st.markdown(config.HELP_TEXT)
     
     # Add keyboard shortcuts helper
-    with st.sidebar.expander("⌨️ Keyboard Shortcuts"):
-        st.markdown(config.KEYBOARD_SHORTCUTS)
+    #with st.sidebar.expander("⌨️ Keyboard Shortcuts"):
+    #    st.markdown(config.KEYBOARD_SHORTCUTS)
     
     # Add timestamp for last refresh
     from datetime import datetime
