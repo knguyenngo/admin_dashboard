@@ -29,6 +29,17 @@ def show_dashboard():
         key="dashboard_time_range"
     )
 
+    # Initialize auto-refresh state if it doesn't exist
+    if "auto_refresh_enabled" not in st.session_state:
+        st.session_state.auto_refresh_enabled = False
+
+    # Add refresh control button to sidebar
+    if st.sidebar.button(
+        "Stop Auto-Refresh" if st.session_state.auto_refresh_enabled else "Start Auto-Refresh",
+        key="refresh_toggle"
+    ):
+        st.session_state.auto_refresh_enabled = not st.session_state.auto_refresh_enabled
+
     # ─── Title & Guide ───────────────────────────────────────
     st.title("Fridge Monitoring Dashboard")
     if st.session_state.get("show_tips", False):
@@ -47,14 +58,13 @@ def show_dashboard():
         ).add_to(map_box)
         folium_static(map_box, width=700, height=300)
 
-    # ─── Prepare placeholders for dynamic stuff ─────────────
-    status_slot = st.empty()
-    history_slot = st.empty()
-    footer_slot  = st.empty()
+    # ─── Create placeholder slots for dynamic content ─────────
+    status_slot = st.empty()  # Use empty() not container()
+    history_slot = st.empty()  # Use empty() not container()
+    footer_slot = st.empty()
 
-    # ─── Refresh loop ────────────────────────────────────────
-    while True:
-        # compute window each iteration
+    # Function to update the content
+    def update_content():
         now = datetime.now()
         if time_range == "Last Hour":
             start_dt = now - timedelta(hours=1)
@@ -62,8 +72,8 @@ def show_dashboard():
             start_dt = now - timedelta(days=1)
         else:
             start_dt = now - timedelta(days=7)
-
-        # ─── Current status row ───────────────────────────────
+        
+        # Update status display
         with status_slot.container():
             latest = get_latest_data_for_fridge(fridge_id)
             if not latest:
@@ -102,15 +112,15 @@ def show_dashboard():
 
                 # small footer under those columns
                 st.caption(f"Last updated: {updated}")
-
-        # ─── Historical tabs ───────────────────────────────────
+        
+        # Update history display
         with history_slot.container():
             st.subheader("Historical Data")
             hist = get_historical_data_for_fridge(fridge_id, start_dt, now)
             if hist.empty:
                 st.info("No history in this range.")
             else:
-                hist["temp"]       = pd.to_numeric(hist["temp"], errors="coerce")
+                hist["temp"] = pd.to_numeric(hist["temp"], errors="coerce")
                 hist["door_usage"] = pd.to_numeric(hist["door_usage"], errors="coerce")
 
                 tabs = st.tabs(["Temp", "Doors", "Stats"])
@@ -131,7 +141,18 @@ def show_dashboard():
                     y.metric("Max Doors", int(d.max()))
                     z.metric("Avg Doors", f"{d.mean():.1f}")
 
-        # ─── Refresh timestamp ─────────────────────────────────
-        footer_slot.caption(f"Next update @ {(now + timedelta(seconds=config.REFRESH_RATE)).strftime('%H:%M:%S')}")
+    # Initial content load
+    update_content()
+    
+    # Show appropriate footer message
+    if not st.session_state.auto_refresh_enabled:
+        footer_slot.caption("Auto-refresh is disabled. Click 'Start Auto-Refresh' in the sidebar to enable.")
 
+    # Refresh loop
+    while st.session_state.auto_refresh_enabled:
+        now = datetime.now()
+        next_refresh = now + timedelta(seconds=config.REFRESH_RATE)
+        footer_slot.caption(f"Auto-refresh enabled. Next update @ {next_refresh.strftime('%H:%M:%S')}")
+        
         time.sleep(config.REFRESH_RATE)
+        update_content()
