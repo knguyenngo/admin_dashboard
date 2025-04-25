@@ -79,17 +79,17 @@ HELP_TEXT = """
 - **Navigation:** Switch between Dashboard and Map View
 - **Fridge Selection:** Choose which fridge to monitor
 - **Time Range:** Select data time period
-- **Show Helper Tips:** Toggle guide elements on/off
+- **Auto Refresh:** Click Once to Start, Triple Click to Stop
 
 ### Status Colors
-- 🟢 **Green:** Operating normally (2-6°C)
-- 🔵 **Blue:** Too cold (below 2°C)
-- 🔴 **Red:** Too warm (above 6°C)
+- 🟢 **Green:** Operating normally (0-50°C)
+- 🔵 **Blue:** Too cold (below 0°F)
+- 🔴 **Red:** Too warm (above 50°F)
 - ⚪ **Gray:** No data available
 
 ### Contact
 For technical support, please contact:
-[support@fridgemonitoring.org](mailto:support@fridgemonitoring.org)
+[support@fridgemonitoring.org](mailto:rvacf)
 """
 
 # Keyboard shortcuts
