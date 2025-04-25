@@ -2,20 +2,16 @@
 import streamlit as st
 from streamlit_cookies_manager import EncryptedCookieManager
 
-# (You’ll need to pip install streamlit-cookies-manager)
-
 # Create one cookie manager for this component
 cookies = EncryptedCookieManager(
     prefix="aws",                   # cookie names will be aws_access_key, aws_secret_key, aws_region
-    password="replace_this_with_a_long_random_string",  
+    password="diajdiajwdijawdiwjidjawidjiwajdiajwidjiwajd",  
 )
 if not cookies.ready():
     # Wait until the cookie lib has initialized
     st.stop()
 
 def show_aws_login():
-    #st.title("🔑 AWS Login")
-
     # Pre-fill from cookies (if they exist)
     default_key    = cookies.get("access_key", "")
     default_secret = cookies.get("secret_key", "")

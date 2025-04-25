@@ -1,14 +1,20 @@
+# main.py
 import streamlit as st
-from components.login    import show_aws_login
-from components.dashboard import show_dashboard
-from components.map_view import show_map_view
-from styles.custom_css   import apply_custom_css
 import config
 
 def main():
-    st.set_page_config(page_title=config.PAGE_TITLE,
-                       page_icon=config.PAGE_ICON,
-                       layout=config.LAYOUT)
+    # 1) THIS must be your very first st.* call
+    st.set_page_config(
+        page_title=config.PAGE_TITLE,
+        page_icon=config.PAGE_ICON,
+        layout=config.LAYOUT
+    )
+
+    # 2) only now import anything that does st.* at import-time
+    from components.login     import show_aws_login
+    from components.dashboard import show_dashboard
+    from components.map_view  import show_map_view
+    from styles.custom_css    import apply_custom_css
 
     apply_custom_css()
 
