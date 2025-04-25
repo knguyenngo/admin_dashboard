@@ -14,7 +14,7 @@ if not cookies.ready():
     st.stop()
 
 def show_aws_login():
-    st.title("🔑 AWS Login")
+    #st.title("🔑 AWS Login")
 
     # Pre-fill from cookies (if they exist)
     default_key    = cookies.get("access_key", "")
@@ -50,7 +50,7 @@ def show_aws_login():
             cookies.save()  # write back to the browser
 
             # and now we can rerun
-            st.experimental_rerun()
+            st.rerun()
 
     # If you reach here, nobody’s logged in yet
     st.stop()
