@@ -170,7 +170,7 @@ def get_status_indicator_style(status, color):
 
 def color_status_style():
     def color_status(val):
-        if "normally" in val:
+        if "Normal" in val:
             return 'background-color: #c6efce; color: #006100'
         elif "cold" in val:
             return 'background-color: #bdd7ee; color: #1f497d'
@@ -183,7 +183,7 @@ def color_status_style():
 # Color map for plotly charts
 def get_status_color_map():
     return {
-        "Operating normally": "#c6efce", 
+        "Normal": "#c6efce", 
         "Too cold": "#bdd7ee", 
         "Too warm": "#ffc7ce",
         "No data": "#f2f2f2"

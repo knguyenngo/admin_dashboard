@@ -4,9 +4,9 @@ def determine_fridge_status(temp):
         return "Unknown", "gray"
     
     temp = float(temp)
-    if 2 <= temp <= 6:
-        return "Operating normally", "green"
-    elif temp < 2:
+    if 0 <= temp <= 50:
+        return "Normal", "green"
+    elif temp < 0:
         return "Too cold", "blue"
     else:  # temp > 6
         return "Too warm", "red"

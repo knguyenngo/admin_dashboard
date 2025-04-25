@@ -34,7 +34,7 @@ def show_map_view():
         st.session_state.map_auto_refresh_enabled = not st.session_state.map_auto_refresh_enabled
     
     # filter widget created once
-    ALL_STATUSES = ["Operating normally", "Too cold", "Too warm", "No data"]
+    ALL_STATUSES = ["Normal", "Too cold", "Too warm", "No data"]
     status_filter = st.multiselect(
         "Filter by Status",
         options=ALL_STATUSES,
@@ -96,7 +96,7 @@ def show_map_view():
                 "Fridge ID":         fid,
                 "Address":           addr,
                 "Status":            status,
-                "Temperature (°C)":  temp if temp is not None else "No data",
+                "Temperature (°F)":  temp if temp is not None else "N/A",
                 "Door Usage (24h)":  door,
                 "Last Updated":      updated
             })
@@ -106,7 +106,7 @@ def show_map_view():
 
         with data_container.container():
             # table + pie in two columns
-            col_table, col_chart = st.columns([3,2])
+            col_table, col_chart = st.columns([4,2])
 
             with col_table:
                 st.subheader("Fridge Status Table")
@@ -114,7 +114,21 @@ def show_map_view():
                 styled = filtered.style.map(
                     color_status_style(), subset=["Status"]
                 )
-                st.dataframe(styled, use_container_width=True)
+                
+                # Add column width configuration
+                st.dataframe(
+                    styled, 
+                    hide_index=True, 
+                    use_container_width=True,
+                    column_config={
+                        "Last Updated": st.column_config.TextColumn(width=200),
+                        "Fridge ID": st.column_config.TextColumn(width=150),
+                        "Address": st.column_config.TextColumn(width=250),
+                        "Status": st.column_config.TextColumn(width=100),
+                        "Temperature (°F)": st.column_config.TextColumn(width=120),
+                        "Door Usage (24h)": st.column_config.TextColumn(width=120)
+                    }
+                )
 
             with col_chart:
                 st.subheader("Status Distribution")

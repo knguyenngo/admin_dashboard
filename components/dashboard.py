@@ -92,7 +92,7 @@ def show_dashboard():
 
                 # three columns: Temp / Door / Status pill
                 col_t, col_d, col_s = st.columns([1,1,1])
-                col_t.metric("🌡️ Temperature", f"{temp_val:.1f}°C" if temp_val is not None else "N/A")
+                col_t.metric("🌡️ Temperature", f"{temp_val:.1f}°F" if temp_val is not None else "N/A")
                 col_d.metric("🚪 Door Usage (24h)", door_val)
 
                 # status pill
@@ -123,6 +123,8 @@ def show_dashboard():
                 hist["temp"] = pd.to_numeric(hist["temp"], errors="coerce")
                 hist["door_usage"] = pd.to_numeric(hist["door_usage"], errors="coerce")
 
+                hist.sort_values('est_time_dt')
+
                 tabs = st.tabs(["Temp", "Doors", "Stats"])
                 with tabs[0]:
                     fig = px.line(hist, x="est_time_dt", y="temp", title="Temperature")
@@ -133,13 +135,13 @@ def show_dashboard():
                 with tabs[2]:
                     t = hist["temp"]; d = hist["door_usage"]
                     a, b, c = st.columns(3)
-                    a.metric("Avg Temp", f"{t.mean():.1f}°C")
-                    b.metric("Max Temp", f"{t.max():.1f}°C")
-                    c.metric("Min Temp", f"{t.min():.1f}°C")
+                    a.metric("Avg Temp", f"{t.mean():.1f}°F")
+                    b.metric("Max Temp", f"{t.max():.1f}°F")
+                    c.metric("Min Temp", f"{t.min():.1f}°F")
                     x, y, z = st.columns(3)
-                    x.metric("Σ Doors", int(d.sum()))
-                    y.metric("Max Doors", int(d.max()))
-                    z.metric("Avg Doors", f"{d.mean():.1f}")
+                    x.metric("Σ Door Interaction", int(d.sum()))
+                    y.metric("Max Door Interaction", int(d.max()))
+                    z.metric("Avg Door Interaction", f"{d.mean():.1f}")
 
     # Initial content load
     update_content()

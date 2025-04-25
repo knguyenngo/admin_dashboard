@@ -60,7 +60,6 @@ def parse_query_result(result):
             else:
                 parsed.append(None)
         rows.append(parsed)
-
     return pd.DataFrame(rows, columns=columns)
 
 # -- Convenience Functions --------------------------------------------------
@@ -68,10 +67,10 @@ def parse_query_result(result):
 def get_latest_data_for_all_fridges():
     """Get latest data for all fridges"""
     query = f"""
-    SELECT fridge_id, est_time, temp, door_usage
+    SELECT fridge_id, est_time, temp, door_usage, time
     FROM \"{config.DATABASE_NAME}\".\"{config.TABLE_NAME}\"
     WHERE time > ago(24h)
-    ORDER BY est_time DESC
+    ORDER BY time DESC
     """
     result = query_timestream(query)
     df = parse_query_result(result)
@@ -89,10 +88,10 @@ def get_latest_data_for_all_fridges():
 def get_latest_data_for_fridge(fridge_id):
     """Get latest data for a specific fridge"""
     query = f"""
-    SELECT fridge_id, est_time, temp, door_usage
+    SELECT fridge_id, est_time, temp, door_usage, time
     FROM \"{config.DATABASE_NAME}\".\"{config.TABLE_NAME}\"
     WHERE fridge_id = '{fridge_id}'
-    ORDER BY est_time DESC
+    ORDER BY time DESC
     LIMIT 1
     """
     result = query_timestream(query)
@@ -111,7 +110,7 @@ def get_historical_data_for_fridge(fridge_id, start_datetime, end_datetime):
       AND parse_datetime(est_time, 'MM/dd/yyyy, hh:mm:ss a')
           BETWEEN parse_datetime('{start_str}', 'MM/dd/yyyy, hh:mm:ss a')
               AND parse_datetime('{end_str}', 'MM/dd/yyyy, hh:mm:ss a')
-    ORDER BY est_time DESC
+    ORDER BY time DESC
     """
     result = query_timestream(query)
     df = parse_query_result(result)
