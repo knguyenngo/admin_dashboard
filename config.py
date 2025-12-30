@@ -10,13 +10,13 @@ PAGE_ICON = "🧊"
 LAYOUT = "wide"
 
 # AWS configuration
-AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY_ID")
-AWS_SECRET_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
+AWS_ACCESS_KEY = st.secrets["AWS_ACCESS_KEY_ID"]
+AWS_SECRET_KEY = st.secrets["AWS_SECRET_ACCESS_KEY"]
+AWS_REGION     = st.secrets.get("AWS_REGION", "us-east-1")
 
 # Timestream database and table configuration
-DATABASE_NAME = os.getenv("TIMESTREAM_DATABASE", "RVACF-Timestream-DB")
-TABLE_NAME = os.getenv("TIMESTREAM_TABLE", "multi_value")
+DATABASE_NAME  = st.secrets.get("TIMESTREAM_DATABASE", "RVACF-Timestream-DB")
+TABLE_NAME     = st.secrets.get("TIMESTREAM_TABLE", "multi_value")
 
 # Define fridge options and locations
 FRIDGE_OPTIONS = {
